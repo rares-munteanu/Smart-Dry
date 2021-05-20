@@ -1,2 +1,3 @@
 app/.idea
 app/cmake-build-debug
+app/CMakeLists.txt
