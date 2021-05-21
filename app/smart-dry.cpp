@@ -9,6 +9,10 @@
 
 #include <nlohmann/json.hpp>
 
+#include "models.cpp"
+
+#include <vector>
+
 using json = nlohmann::json;
 using namespace std;
 using namespace Pistache;
@@ -17,16 +21,31 @@ class SmartDry
 {
 private:
     string status;
+    int power; // expresed as a percentage (x%)
+    vector<Cloth> clothes;
+    int detergent; // expressed as a percentage (x%)
+
+    inline string getPower()
+    {
+        return to_string(power) + "%";
+    }
+
+    inline string getDetergent()
+    {
+        return to_string(detergent) + "%";
+    }
 
 public:
     SmartDry()
     {
         status.assign("Off");
+        power = 100;   // starts as fully charged
+        detergent = 0; // starts with no detergent
     };
 
     void statusRequest(const Rest::Request &, Http::ResponseWriter response)
     {
-        json array_not_object = json({{"status", status}});
+        json array_not_object = json({{"status", status}, {"power", getPower()}, {"detergent", getDetergent()}, {"clothes", {}}});
         auto mime = Http::Mime::MediaType::fromString("application/json");
 
         response.send(Http::Code::Ok, array_not_object.dump(), mime);
