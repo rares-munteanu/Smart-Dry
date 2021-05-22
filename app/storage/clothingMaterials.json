@@ -1,0 +1,62 @@
+[
+    {
+        "name": "Cotton",
+        "dryFactor": 7
+    },
+    {
+        "name": "Wool",
+        "dryFactor": 3
+    },
+    {
+        "name": "Silk",
+        "dryFactor": 9
+    },
+    {
+        "name": "Leather",
+        "dryFactor": 8
+    },
+    {
+        "name": "Linen",
+        "dryFactor": 6
+    },
+    {
+        "name": "Georgette",
+        "dryFactor": 10
+    },
+    {
+        "name": "Chiffon",
+        "dryFactor": 10
+    },
+    {
+        "name": "Nylon",
+        "dryFactor": 9
+    },
+    {
+        "name": "Polyester",
+        "dryFactor": 8
+    },
+    {
+        "name": "Velvet",
+        "dryFactor": 5
+    },
+    {
+        "name": "Denim",
+        "dryFactor": 6
+    },
+    {
+        "name": "Satin",
+        "dryFactor": 9
+    },
+    {
+        "name": "Crepe",
+        "dryFactor": 7
+    },
+    {
+        "name": "Lycra",
+        "dryFactor": 7
+    },
+    {
+        "name": "Lace",
+        "dryFactor": 9
+    }
+]

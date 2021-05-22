@@ -1,0 +1,170 @@
+[
+    {
+        "name": "Red",
+        "interactions": [
+            {
+                "name": "White",
+                "output": "Pink"
+            },
+            {
+                "name": "Yellow",
+                "output": "Orange"
+            },
+            {
+                "name": "Blue",
+                "output": "Purple"
+            },
+            {
+                "name": "Black",
+                "output": "Dark Red"
+            }
+        ]
+    },
+    {
+        "name": "Yellow",
+        "interactions": [
+            {
+                "name": "White",
+                "output": "Bright Yellow"
+            },
+            {
+                "name": "Red",
+                "output": "Orange"
+            },
+            {
+                "name": "Blue",
+                "output": "Green"
+            },
+            {
+                "name": "Black",
+                "output": "Dark Yellow"
+            }
+        ]
+    },
+    {
+        "name": "Blue",
+        "interactions": [
+            {
+                "name": "White",
+                "output": "Bright Blue"
+            },
+            {
+                "name": "Red",
+                "output": "Purple"
+            },
+            {
+                "name": "Yellow",
+                "output": "Green"
+            },
+            {
+                "name": "Black",
+                "output": "Dark Blue"
+            }
+        ]
+    },
+    {
+        "name": "Black",
+        "interactions": [
+            {
+                "name": "White",
+                "output": "Gray"
+            },
+            {
+                "name": "Red",
+                "output": "Dark Red"
+            },
+            {
+                "name": "Blue",
+                "output": "Dark Blue"
+            },
+            {
+                "name": "Yellow",
+                "output": "Dark Yellow"
+            },
+            {
+                "name": "Green",
+                "output": "Dark Green"
+            },
+            {
+                "name": "Purple",
+                "output": "Dark Purple"
+            },
+            {
+                "name": "Orange",
+                "output": "Dark Orange"
+            }
+        ]
+    },
+    {
+        "name": "White",
+        "interactions": [
+            {
+                "name": "Yellow",
+                "output": "Bright Yellow"
+            },
+            {
+                "name": "Red",
+                "output": "Pink"
+            },
+            {
+                "name": "Blue",
+                "output": "Light Blue"
+            },
+            {
+                "name": "Black",
+                "output": "Gray"
+            },
+            {
+                "name": "Green",
+                "output": "Light Green"
+            },
+            {
+                "name": "Purple",
+                "output": "Light Purple"
+            },
+            {
+                "name": "Orange",
+                "output": "Light Orange"
+            }
+        ]
+    },
+    {
+        "name": "Purple",
+        "interactions": [
+            {
+                "name": "White",
+                "output": "Light Purple"
+            },
+            {
+                "name": "Black",
+                "output": "Dark Purple"
+            }
+        ]
+    },
+    {
+        "name": "Orange",
+        "interactions": [
+            {
+                "name": "White",
+                "output": "Light Orange"
+            },
+            {
+                "name": "Black",
+                "output": "Dark Orange"
+            }
+        ]
+    },
+    {
+        "name": "Green",
+        "interactions": [
+            {
+                "name": "White",
+                "output": "Light Green"
+            },
+            {
+                "name": "Black",
+                "output": "Dark Green"
+            }
+        ]
+    }
+]
