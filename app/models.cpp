@@ -266,14 +266,13 @@
     friend void from_json(const nlohmann::json &nlohmann_json_j, Type &nlohmann_json_t) { NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM, __VA_ARGS__)) }
 
 #include <nlohmann/json.hpp>
+#include "storage/load.cpp"
 using namespace std;
-using json = nlohmann::json;
 
 class Cloth
 {
 
 private:
-    static int idSequence = 0;
     string hash;
     string type;
     string color;
@@ -284,11 +283,12 @@ private:
 
     static int getNextId()
     {
-        idSequence++;
-        return this->idSequence;
+        Cloth::idSequence++;
+        return Cloth::idSequence;
     }
 
 public:
+    static int idSequence;
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Cloth, type, color, material, wet)
 
     Cloth(const string &type, const string &color, const string &material, const int &wet, const int &weight) : type(type), color(color), material(material), wet(wet), weight(weight) {}
@@ -344,9 +344,14 @@ public:
         return weight;
     }
 
-    const int &getRealWeight() const
+    int getRealWeight()
     {
-        return ((wet / 2) * weight) / 100 + weight;
+        cout << wet << endl;
+        cout << weight << endl;
+
+        int realWeight = ((wet / 2) * weight) / 100 + weight;
+        cout << realWeight << endl;
+        return realWeight;
     }
 
     string getWetFormatted() const
@@ -356,45 +361,35 @@ public:
 
     json serialize()
     {
-        return json({{"type", type}, {"color", color}, {"material", material}, {"wet", getWetFormatted()}, {"weight", getWeight()}});
+        return json({{"id", id}, {"type", type}, {"color", color}, {"material", material}, {"wet", getWetFormatted()}, {"weight", getWeight()}});
     }
 
-    static
-
-        static vector<Cloth>
-        deserializeVector(string data) noexcept(false)
+    static vector<Cloth> deserializeVector(string data) noexcept(false)
     {
+        ClothTypes clothTypes = Loader::getInstance().getClothTypes();
         vector<Cloth> clothes;
         json j = json::parse(data);
         for (auto &el : j.items())
         {
             json clothJson = el.value();
             Cloth cloth;
-            try
-            {
-                cloth = clothJson.get<Cloth>();
-            }
-            catch (...)
-            {
-                throw runtime_error("deserializeVector of clothes - received wrong input");
-            }
-            cloth.id = this->getNextId();
+            cloth = clothJson.get<Cloth>();
+            cloth.id = getNextId();
             if (cloth.wet < 0 || cloth.wet > 100)
             {
                 throw runtime_error("deserializeVector of clothes - invalid wet value");
             }
-            if (cloth.weight < 0)
-            {
-                throw runtime_error("deserializeVector of clothes - invalid weight value");
-            }
+            string key = cloth.type + cloth.material;
+            transform(key.begin(), key.end(), key.begin(), ::tolower);
+            cloth.weight = clothTypes.at(key).getWeight();
             clothes.push_back(cloth);
         }
         return clothes;
     }
 
-    static vector<json> serializeVector(vector<Cloth> clothes)
+    static json serializeVector(vector<Cloth> clothes)
     {
-        vector<json> serializedClothes;
+        json serializedClothes;
 
         for (int i = 0; i < clothes.size(); i++)
         {
@@ -404,3 +399,5 @@ public:
         return serializedClothes;
     }
 };
+
+int Cloth::idSequence = 0;

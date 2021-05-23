@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <utility>
 #include "storageModels.cpp"
+#include <vector>
 
 using namespace std;
 using json = nlohmann::json;
@@ -16,7 +17,47 @@ class Loader
 {
 
 private:
-    Loader() {}
+    Materials materialsMap;
+    Colors colorsMap;
+    ClothTypes clothesMap;
+    vector<Program> programsVector;
+
+    Loader()
+    {
+        cout << 1;
+        json materials = getJsonFileContent("./storage/clothingMaterials.json");
+
+        for (auto &it : materials)
+        {
+            materialsMap.insert(std::make_pair(it.at("name"), it));
+        }
+
+        cout << 2;
+        json colors = getJsonFileContent("./storage/colorCombinations.json");
+
+        for (auto &it : colors)
+        {
+            colorsMap.insert(std::make_pair(it.at("name"), it));
+        }
+
+        cout << 3;
+        json clothes = getJsonFileContent("./storage/clothingWeights.json");
+
+        for (auto &it : clothes)
+        {
+            string key = it.at("type").get<string>() + it.at("material").get<string>();
+            transform(key.begin(), key.end(), key.begin(), ::tolower);
+            clothesMap.insert(std::make_pair(key, it));
+        }
+
+        // cout << 4;
+        // json programs = getJsonFileContent("./storage/progams.json");
+
+        // for (auto &it : programs)
+        // {
+        //     programsVector.push_back(Program(it));
+        // }
+    }
 
     json getJsonFileContent(string fileName)
     {
@@ -40,40 +81,21 @@ public:
 
     Materials getClothingMaterials()
     {
-        json materials = getJsonFileContent("./clothingMaterials.json");
-        Materials materialsMap;
-
-        for (auto &it : materials)
-        {
-            materialsMap.insert(std::make_pair(it.at("name"), it));
-        }
-
         return materialsMap;
     }
 
     Colors getColors()
     {
-        json colors = getJsonFileContent("./colorCombinations.json");
-        Colors colorsMap;
-
-        for (auto &it : colors)
-        {
-            colorsMap.insert(std::make_pair(it.at("name"), it));
-        }
-
         return colorsMap;
     }
 
     ClothTypes getClothTypes()
     {
-        json clothes = getJsonFileContent("./clothingWeights.json");
-        ClothTypes clothesMap;
-
-        for (auto &it : clothes)
-        {
-            clothesMap.insert(std::make_pair(it.at("type"), it));
-        }
-
         return clothesMap;
+    }
+
+    vector<Program> getPrograms()
+    {
+        return programsVector;
     }
 };

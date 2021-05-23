@@ -8,6 +8,7 @@
 #include <pistache/common.h>
 
 #include <nlohmann/json.hpp>
+#include <vector>
 
 #include "models.cpp"
 
@@ -16,17 +17,6 @@
 using json = nlohmann::json;
 using namespace std;
 using namespace Pistache;
-class Program
-{
-private:
-    string name;
-    int duration; // expresed in minutes
-    int heat;     // expressed in celsius
-    int rpm;      // expresses in rotations per minutes
-
-public:
-    Program(const string &name) : name(name) {}
-};
 
 class SmartDry
 {
@@ -34,7 +24,7 @@ private:
     string status;
     int power; // expresed as a percentage (x%)
     vector<Cloth> clothes;
-    int detergent; // expressed as a percentage (x%)
+    int perfume; // expressed as a percentage (x%)
     int maxWeight;
     int currentWeight;
 
@@ -43,12 +33,12 @@ private:
         return to_string(power) + "%";
     }
 
-    inline string getDetergent()
+    inline string getPerfume()
     {
-        return to_string(detergent) + "%";
+        return to_string(perfume) + "%";
     }
 
-    inline vector<json> getClothes()
+    inline json getClothes()
     {
         return Cloth::serializeVector(clothes);
     }
@@ -58,14 +48,14 @@ public:
     {
         status.assign("Off");
         power = 100;       // starts as fully charged
-        detergent = 0;     // starts with no detergent
+        perfume = 0;       // starts with no perfume
         maxWeight = 3000;  // 3 kg
         currentWeight = 0; // starts with 0
     };
 
     void statusRequest(const Rest::Request &, Http::ResponseWriter response)
     {
-        json array_not_object = json({{"status", status}, {"power", getPower()}, {"detergent", getDetergent()}, {"clothes", getClothes()}, {"currentWeight", currentWeight}, {"maxWeight", maxWeight}});
+        json array_not_object = json({{"status", status}, {"power", getPower()}, {"perfume", getPerfume()}, {"clothes", getClothes()}, {"currentWeight", currentWeight}, {"maxWeight", maxWeight}});
         auto mime = Http::Mime::MediaType::fromString("application/json");
 
         response.send(Http::Code::Ok, array_not_object.dump(), mime);
@@ -77,6 +67,20 @@ public:
         response.send(Http::Code::Ok);
     };
 
+    void getPrograms(const Rest::Request &request, Http::ResponseWriter response)
+    {
+        vector<Program> programs = Loader::getInstance().getPrograms();
+        auto mime = Http::Mime::MediaType::fromString("application/json");
+
+        json programsJson = json();
+        for (auto &it : programs)
+        {
+            programsJson.push_back(it.serialize());
+        }
+
+        response.send(Http::Code::Ok, programsJson.dump(), mime);
+    }
+
     void addClothes(const Rest::Request &request, Http::ResponseWriter response)
     {
         string requestBody = request.body();
@@ -85,22 +89,28 @@ public:
         {
             clothesToAdd = Cloth::deserializeVector(requestBody);
         }
+        catch (out_of_range e)
+        {
+            cout << "addClothes - Invalid combination of type and material";
+            response.send(Http::Code::Bad_Request, "Invalid combination of type and material");
+            return;
+        }
         catch (runtime_error e)
         {
-            cout << e.what() << endl;
+            cout << "addClothes - " << e.what() << endl;
             response.send(Http::Code::Bad_Request, e.what());
             return;
         }
         catch (...)
         {
-            cout << "Unexpected error in addClothes.";
+            cout << "addClothes - Unexpected error in addClothes." << endl;
             response.send(Http::Code::Bad_Request, "Unexpected error in addClothes.");
             return;
         }
         int clothesToAddWeight = this->currentWeight;
-        for (const auto &cloth : clothesToAdd)
+        for (Cloth &cloth : clothesToAdd)
         {
-            clothesToAddWeight += cloth.getWeight();
+            clothesToAddWeight += cloth.getRealWeight();
             if (clothesToAddWeight > this->maxWeight)
             {
                 response.send(Http::Code::Bad_Request, "Overweight! Please try again with fewer clothes.");
@@ -109,8 +119,20 @@ public:
         }
         this->currentWeight = clothesToAddWeight;
         this->clothes.insert(clothes.end(), clothesToAdd.begin(), clothesToAdd.end());
+        auto mime = Http::Mime::MediaType::fromString("application/json");
 
-        statusRequest(request, response);
+        response.send(Http::Code::Ok, this->getClothes().dump(), mime);
+    }
+
+    void removeClothes(const Rest::Request &request, Http::ResponseWriter response)
+    {
+        json requestBody = json::parse(request.body());
+        for (auto clothId : requestBody)
+        {
+            if (clothId.is_number())
+            {
+            }
+        }
     }
 };
 
@@ -132,6 +154,8 @@ public:
         Routes::Get(router, "/status", Routes::bind(&SmartDry::statusRequest, smdr));
         Routes::Get(router, "/initialize", Routes::bind(&SmartDry::initializeRequest, smdr));
         Routes::Post(router, "/addClothes", Routes::bind(&SmartDry::addClothes, smdr));
+        Routes::Post(router, "/removeClothes", Routes::bind(&SmartDry::removeClothes, smdr));
+        Routes::Get(router, "/programs", Routes::bind(&SmartDry::getPrograms, smdr));
     }
 
     void start()

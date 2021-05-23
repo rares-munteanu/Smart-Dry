@@ -1,0 +1,8 @@
+[
+    {
+        "name": "Test",
+        "duration": 120,
+        "heat": 50,
+        "rpm": 800
+    }
+]

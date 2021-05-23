@@ -100,3 +100,41 @@ public:
         return weight;
     }
 };
+
+class Program
+{
+private:
+    string name;
+    int duration; // expresed in minutes
+    int heat;     // expressed in celsius
+    int rpm;      // expresses in rotations per minutes
+
+public:
+    Program(json program)
+    {
+        cout << program;
+        name = program.at("name");
+        duration = program.at("duration");
+        heat = program.at("heat");
+        rpm = program.at("rpm");
+    }
+
+    const int &getDuration() const
+    {
+        return duration;
+    }
+
+    const int &getHeat() const
+    {
+        return heat;
+    }
+    const int &getRPM() const
+    {
+        return rpm;
+    }
+
+    json serialize()
+    {
+        return json({{"name", name}, {"duration", duration}, {"heat", heat}, {"rpm", rpm}});
+    }
+};
