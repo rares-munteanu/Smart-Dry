@@ -1,62 +1,77 @@
 [
     {
         "name": "Cotton",
-        "dryFactor": 7
+        "dryFactor": 7,
+        "maxTemp": 90
     },
     {
         "name": "Wool",
-        "dryFactor": 3
+        "dryFactor": 3,
+        "maxTemp": 30
     },
     {
         "name": "Silk",
-        "dryFactor": 9
+        "dryFactor": 9,
+        "maxTemp": 30
     },
     {
         "name": "Leather",
-        "dryFactor": 8
+        "dryFactor": 8,
+        "maxTemp": 60
     },
     {
         "name": "Linen",
-        "dryFactor": 6
+        "dryFactor": 6,
+        "maxTemp": 90
     },
     {
         "name": "Georgette",
-        "dryFactor": 10
+        "dryFactor": 10,
+        "maxTemp": 30
     },
     {
         "name": "Chiffon",
-        "dryFactor": 10
+        "dryFactor": 10,
+        "maxTemp": 60
     },
     {
         "name": "Nylon",
-        "dryFactor": 9
+        "dryFactor": 9,
+        "maxTemp": 30
     },
     {
         "name": "Polyester",
-        "dryFactor": 8
+        "dryFactor": 8,
+        "maxTemp": 60
     },
     {
         "name": "Velvet",
-        "dryFactor": 5
+        "dryFactor": 5,
+        "maxTemp": 60
     },
     {
         "name": "Denim",
-        "dryFactor": 6
+        "dryFactor": 6,
+        "maxTemp": 90
     },
     {
         "name": "Satin",
-        "dryFactor": 9
+        "dryFactor": 9,
+        "maxTemp": 60
     },
     {
         "name": "Crepe",
-        "dryFactor": 7
+        "dryFactor": 7,
+        "maxTemp": 60
     },
     {
         "name": "Lycra",
-        "dryFactor": 7
+        "dryFactor": 7,
+        "maxTemp": 60
     },
     {
         "name": "Lace",
-        "dryFactor": 9
+        "dryFactor": 9,
+        "maxTemp": 60
     }
 ]

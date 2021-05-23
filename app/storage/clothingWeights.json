@@ -1,0 +1,147 @@
+[
+{
+    "type": "Pants",
+    "material": "Linen",
+    "weight": 150
+},
+{
+    "type": "Pants",
+    "material": "Denim",
+    "weight": 150
+},
+{
+    "type": "Pants",
+    "material": "Cotton",
+    "weight": 100
+},
+{
+    "type": "Pants",
+    "material": "Wool",
+    "weight": 300
+},
+{
+    "type": "Pants",
+    "material": "Leather",
+    "weight": 150
+},
+{
+    "type": "Pants",
+    "material": "Polyester",
+    "weight": 100
+},
+{
+    "type": "Blanket",
+    "material": "Wool",
+    "weight": 800
+},
+{
+    "type": "Blanket",
+    "material": "Polyester",
+    "weight": 500
+},
+{
+    "type": "Blanket",
+    "material": "Velvet",
+    "weight": 550
+},
+{
+    "type": "Blanket",
+    "material": "Linen",
+    "weight": 300
+},
+{
+    "type": "Shirt",
+    "material": "Wool",
+    "weight": 200
+},
+{
+    "type": "Shirt",
+    "material": "Polyester",
+    "weight": 100
+},
+{
+    "type": "Shirt",
+    "material": "Velvet",
+    "weight": 150
+},
+{
+    "type": "Shirt",
+    "material": "Linen",
+    "weight": 100
+},
+{
+    "type": "Dress",
+    "material": "Linen",
+    "weight": 200
+},
+{
+    "type": "Dress",
+    "material": "Polyester",
+    "weight": 200
+},
+{
+    "type": "Dress",
+    "material": "Velvet",
+    "weight": 250
+},
+{
+    "type": "Dress",
+    "material": "Satin",
+    "weight": 200
+},
+{
+    "type": "Dress",
+    "material": "Crepe",
+    "weight": 250
+},
+{
+    "type": "Dress",
+    "material": "Lycra",
+    "weight": 200
+},
+{
+    "type": "Dress",
+    "material": "Lace",
+    "weight": 120
+},
+{
+    "type": "Dress",
+    "material": "Leather",
+    "weight": 200
+},
+{
+    "type": "Dress",
+    "material": "Denim",
+    "weight": 200
+},
+{
+    "type": "Dress",
+    "material": "Nylon",
+    "weight": 200
+},
+{
+    "type": "Dress",
+    "material": "Chiffon",
+    "weight": 200
+},
+{
+    "type": "Dress",
+    "material": "Georgette",
+    "weight": 150
+},
+{
+    "type": "Dress",
+    "material": "Silk",
+    "weight": 100
+},
+{
+    "type": "Dress",
+    "material": "Wool",
+    "weight": 300
+},
+{
+    "type": "Dress",
+    "material": "Cotton",
+    "weight": 200
+}
+]

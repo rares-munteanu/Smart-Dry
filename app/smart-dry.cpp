@@ -35,6 +35,8 @@ private:
     int power; // expresed as a percentage (x%)
     vector<Cloth> clothes;
     int detergent; // expressed as a percentage (x%)
+    int maxWeight;
+    int currentWeight;
 
     inline string getPower()
     {
@@ -55,15 +57,15 @@ public:
     SmartDry()
     {
         status.assign("Off");
-        power = 100;   // starts as fully charged
-        detergent = 0; // starts with no detergent
-
-        clothes.push_back(Cloth("Pants", "Blue", "Denim", 100, 1200));
+        power = 100;       // starts as fully charged
+        detergent = 0;     // starts with no detergent
+        maxWeight = 3000;  // 3 kg
+        currentWeight = 0; // starts with 0
     };
 
     void statusRequest(const Rest::Request &, Http::ResponseWriter response)
     {
-        json array_not_object = json({{"status", status}, {"power", getPower()}, {"detergent", getDetergent()}, {"clothes", getClothes()}});
+        json array_not_object = json({{"status", status}, {"power", getPower()}, {"detergent", getDetergent()}, {"clothes", getClothes()}, {"currentWeight", currentWeight}, {"maxWeight", maxWeight}});
         auto mime = Http::Mime::MediaType::fromString("application/json");
 
         response.send(Http::Code::Ok, array_not_object.dump(), mime);
@@ -78,14 +80,37 @@ public:
     void addClothes(const Rest::Request &request, Http::ResponseWriter response)
     {
         string requestBody = request.body();
-        vector<Cloth> clothesToAdd = Cloth::deserializeVector(requestBody);
-
-        for (int i = 0; i < clothesToAdd.size(); i++)
+        vector<Cloth> clothesToAdd;
+        try
         {
-            cout << clothesToAdd[i].getType() << endl;
+            clothesToAdd = Cloth::deserializeVector(requestBody);
         }
+        catch (runtime_error e)
+        {
+            cout << e.what() << endl;
+            response.send(Http::Code::Bad_Request, e.what());
+            return;
+        }
+        catch (...)
+        {
+            cout << "Unexpected error in addClothes.";
+            response.send(Http::Code::Bad_Request, "Unexpected error in addClothes.");
+            return;
+        }
+        int clothesToAddWeight = this->currentWeight;
+        for (const auto &cloth : clothesToAdd)
+        {
+            clothesToAddWeight += cloth.getWeight();
+            if (clothesToAddWeight > this->maxWeight)
+            {
+                response.send(Http::Code::Bad_Request, "Overweight! Please try again with fewer clothes.");
+                return;
+            }
+        }
+        this->currentWeight = clothesToAddWeight;
+        this->clothes.insert(clothes.end(), clothesToAdd.begin(), clothesToAdd.end());
 
-        response.send(Http::Code::Ok);
+        statusRequest(request, response);
     }
 };
 

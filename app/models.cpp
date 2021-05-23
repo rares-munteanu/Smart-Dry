@@ -273,14 +273,23 @@ class Cloth
 {
 
 private:
+    static int idSequence = 0;
+    string hash;
     string type;
     string color;
     string material;
     int wet;    // expressed as a percentage %
     int weight; // expressed in grams
+    int id;
+
+    static int getNextId()
+    {
+        idSequence++;
+        return this->idSequence;
+    }
 
 public:
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Cloth, type, color, material, wet, weight)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Cloth, type, color, material, wet)
 
     Cloth(const string &type, const string &color, const string &material, const int &wet, const int &weight) : type(type), color(color), material(material), wet(wet), weight(weight) {}
     Cloth() = default;
@@ -335,6 +344,11 @@ public:
         return weight;
     }
 
+    const int &getRealWeight() const
+    {
+        return ((wet / 2) * weight) / 100 + weight;
+    }
+
     string getWetFormatted() const
     {
         return to_string(wet) + "%";
@@ -345,22 +359,35 @@ public:
         return json({{"type", type}, {"color", color}, {"material", material}, {"wet", getWetFormatted()}, {"weight", getWeight()}});
     }
 
-    static vector<Cloth> deserializeVector(string data)
+    static
+
+        static vector<Cloth>
+        deserializeVector(string data) noexcept(false)
     {
         vector<Cloth> clothes;
         json j = json::parse(data);
-
         for (auto &el : j.items())
         {
             json clothJson = el.value();
+            Cloth cloth;
             try
             {
-                clothes.push_back(clothJson.get<Cloth>());
+                cloth = clothJson.get<Cloth>();
             }
             catch (...)
             {
-                cout << "deserializeVector of clothes received wrong input";
+                throw runtime_error("deserializeVector of clothes - received wrong input");
             }
+            cloth.id = this->getNextId();
+            if (cloth.wet < 0 || cloth.wet > 100)
+            {
+                throw runtime_error("deserializeVector of clothes - invalid wet value");
+            }
+            if (cloth.weight < 0)
+            {
+                throw runtime_error("deserializeVector of clothes - invalid weight value");
+            }
+            clothes.push_back(cloth);
         }
         return clothes;
     }
@@ -377,24 +404,3 @@ public:
         return serializedClothes;
     }
 };
-
-// void to_json(json &j, const Cloth &c)
-// {
-//     j = json{{"type", c.getType()}, {"color", c.getColor()}, {"material", c.getMaterial()}, {"wet", c.getWet()}, {"Weight", c.getWeight()}};
-// }
-
-// void from_json(const json &j, Cloth &c)
-// {
-//     string type, color, material;
-//     int wet, weight;
-//     j.at("type").get_to(type);
-//     j.at("color").get_to(color);
-//     j.at("material").get_to(material);
-//     j.at("wet").get_to(wet);
-//     j.at("weight").get_to(weight);
-//     c.setType(type);
-//     c.setColor(color);
-//     c.setMaterial(material);
-//     c.setWet(wet);
-//     c.setWeight(weight);
-// }
