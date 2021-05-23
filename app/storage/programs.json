@@ -4,5 +4,59 @@
         "duration": 120,
         "heat": 50,
         "rpm": 800
+    },
+    {
+        "name": "High Heat High Speed",
+        "duration": 30,
+        "heat": 90,
+        "rpm": 1000
+    },
+    {
+        "name": "High Heat Low Speed",
+        "duration": 30,
+        "heat": 90,
+        "rpm": 400
+    },
+    {
+        "name": "High Heat Medium Speed",
+        "duration": 30,
+        "heat": 90,
+        "rpm": 600
+    },
+    {
+        "name": "Low Heat Low Speed",
+        "duration": 150,
+        "heat": 30,
+        "rpm": 400
+    },
+    {
+        "name": "Low Heat Medium Speed",
+        "duration": 150,
+        "heat": 30,
+        "rpm": 600
+    },
+    {
+        "name": "Low Heat High Speed",
+        "duration": 150,
+        "heat": 30,
+        "rpm": 1000
+    },
+    {
+        "name": "Medium Heat High Speed",
+        "duration": 150,
+        "heat": 60,
+        "rpm": 1000
+    },
+    {
+        "name": "Medium Heat Medium Speed",
+        "duration": 150,
+        "heat": 60,
+        "rpm": 600
+    },
+    {
+        "name": "Medium Heat Low Speed",
+        "duration": 150,
+        "heat": 60,
+        "rpm": 400
     }
 ]

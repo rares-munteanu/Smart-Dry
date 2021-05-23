@@ -24,7 +24,6 @@ private:
 
     Loader()
     {
-        cout << 1;
         json materials = getJsonFileContent("./storage/clothingMaterials.json");
 
         for (auto &it : materials)
@@ -32,7 +31,6 @@ private:
             materialsMap.insert(std::make_pair(it.at("name"), it));
         }
 
-        cout << 2;
         json colors = getJsonFileContent("./storage/colorCombinations.json");
 
         for (auto &it : colors)
@@ -40,7 +38,6 @@ private:
             colorsMap.insert(std::make_pair(it.at("name"), it));
         }
 
-        cout << 3;
         json clothes = getJsonFileContent("./storage/clothingWeights.json");
 
         for (auto &it : clothes)
@@ -50,13 +47,12 @@ private:
             clothesMap.insert(std::make_pair(key, it));
         }
 
-        // cout << 4;
-        // json programs = getJsonFileContent("./storage/progams.json");
+        json programs = getJsonFileContent("./storage/programs.json");
 
-        // for (auto &it : programs)
-        // {
-        //     programsVector.push_back(Program(it));
-        // }
+        for (auto &it : programs)
+        {
+            programsVector.push_back(Program(it));
+        }
     }
 
     json getJsonFileContent(string fileName)

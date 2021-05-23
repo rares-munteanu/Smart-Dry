@@ -294,6 +294,11 @@ public:
     Cloth(const string &type, const string &color, const string &material, const int &wet, const int &weight) : type(type), color(color), material(material), wet(wet), weight(weight) {}
     Cloth() = default;
 
+    int getId()
+    {
+        return this->id;
+    }
+
     void setType(const string &type)
     {
         this->type = type;
@@ -346,11 +351,7 @@ public:
 
     int getRealWeight()
     {
-        cout << wet << endl;
-        cout << weight << endl;
-
         int realWeight = ((wet / 2) * weight) / 100 + weight;
-        cout << realWeight << endl;
         return realWeight;
     }
 

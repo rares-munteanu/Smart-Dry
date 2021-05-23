@@ -22,16 +22,15 @@ class SmartDry
 {
 private:
     string status;
-    int power; // expresed as a percentage (x%)
     vector<Cloth> clothes;
     int perfume; // expressed as a percentage (x%)
     int maxWeight;
     int currentWeight;
 
-    inline string getPower()
-    {
-        return to_string(power) + "%";
-    }
+    int rpm;
+    int heat;
+    int duration;
+    int durationLeft;
 
     inline string getPerfume()
     {
@@ -46,20 +45,32 @@ private:
 public:
     SmartDry()
     {
-        status.assign("Off");
-        power = 100;       // starts as fully charged
+        status.assign("off");
         perfume = 0;       // starts with no perfume
         maxWeight = 3000;  // 3 kg
         currentWeight = 0; // starts with 0
+
+        Program defaultProgram = Loader::getInstance().getPrograms()[0];
+        heat = defaultProgram.getHeat();
+        duration = defaultProgram.getDuration();
+        rpm = defaultProgram.getRPM();
     };
 
     void statusRequest(const Rest::Request &, Http::ResponseWriter response)
     {
-        json array_not_object = json({{"status", status}, {"power", getPower()}, {"perfume", getPerfume()}, {"clothes", getClothes()}, {"currentWeight", currentWeight}, {"maxWeight", maxWeight}});
-        auto mime = Http::Mime::MediaType::fromString("application/json");
 
-        response.send(Http::Code::Ok, array_not_object.dump(), mime);
+        try
+        {
+            json array_not_object = json({{"status", status}, {"perfume", getPerfume()}, {"clothes", getClothes()}, {"currentWeight", currentWeight}, {"maxWeight", maxWeight}, {"heat", heat}, {"rpm", rpm}, {"duration", duration}, {"durationLeft", durationLeft}});
+            auto mime = Http::Mime::MediaType::fromString("application/json");
+            response.send(Http::Code::Ok, array_not_object.dump(), mime);
+        }
+        catch (...)
+        {
+            response.send(Http::Code::Bad_Request, "An unexpected error occured");
+        }
     };
+
     void initializeRequest(const Rest::Request &, Http::ResponseWriter response)
     {
         status.assign("Initialized");
@@ -75,10 +86,44 @@ public:
         json programsJson = json();
         for (auto &it : programs)
         {
+            cout << it.getName() << endl;
             programsJson.push_back(it.serialize());
         }
 
         response.send(Http::Code::Ok, programsJson.dump(), mime);
+    }
+
+    void setProgram(const Rest::Request &request, Http::ResponseWriter response)
+    {
+        vector<Program> programs = Loader::getInstance().getPrograms();
+
+        json requestBody = json::parse(request.body());
+        string programToSelect;
+        try
+        {
+            programToSelect = requestBody.at("program");
+        }
+        catch (...)
+        {
+            cout << "setProgram - Invalid body format." << endl;
+            response.send(Http::Code::Bad_Request, "Invalid body format.");
+            return;
+        }
+
+        for (auto &it : programs)
+        {
+            if (it.getName() == programToSelect)
+            {
+                heat = it.getHeat();
+                rpm = it.getRPM();
+                duration = it.getDuration();
+
+                response.send(Http::Code::Ok);
+                return;
+            }
+        }
+
+        response.send(Http::Code::Not_Found);
     }
 
     void addClothes(const Rest::Request &request, Http::ResponseWriter response)
@@ -91,7 +136,7 @@ public:
         }
         catch (out_of_range e)
         {
-            cout << "addClothes - Invalid combination of type and material";
+            cout << "addClothes - Invalid combination of type and material" << endl;
             response.send(Http::Code::Bad_Request, "Invalid combination of type and material");
             return;
         }
@@ -127,12 +172,115 @@ public:
     void removeClothes(const Rest::Request &request, Http::ResponseWriter response)
     {
         json requestBody = json::parse(request.body());
+
         for (auto clothId : requestBody)
         {
             if (clothId.is_number())
             {
+                auto new_end = remove_if(clothes.begin(), clothes.begin(), [&](Cloth &cloth) -> bool {
+                    return clothId == cloth.getId();
+                });
+                if (new_end != clothes.end())
+                {
+                    this->currentWeight -= new_end->getRealWeight();
+                }
+                clothes.erase(new_end, clothes.end());
             }
         }
+
+        response.send(Http::Code::Ok);
+    }
+
+    void setHeat(const Rest::Request &request, Http::ResponseWriter response)
+    {
+        json requestBody = json::parse(request.body());
+        int newHeat = 0;
+        try
+        {
+            newHeat = requestBody.at("heat");
+            if (newHeat < 30 || newHeat > 90)
+            {
+                throw runtime_error("Invalid value. It should be >= 30 and <=90.");
+            }
+            Materials material = Loader::getInstance().getClothingMaterials();
+            for (auto cloth : this->clothes)
+            {
+                if (material.at(cloth.getMaterial()).getMaxTemp() < newHeat)
+                {
+                    throw runtime_error("Invalid value. There are clothes that doesn't allow this heat.");
+                }
+            }
+        }
+        catch (runtime_error e)
+        {
+            cout << "setHeat - " << e.what() << endl;
+            response.send(Http::Code::Bad_Request, e.what());
+            return;
+        }
+        catch (...)
+        {
+            cout << "setHeat - Invalid body format." << endl;
+            response.send(Http::Code::Bad_Request, "Invalid body format.");
+            return;
+        }
+        this->heat = newHeat;
+        response.send(Http::Code::Ok);
+    }
+
+    void setRPM(const Rest::Request &request, Http::ResponseWriter response)
+    {
+        json requestBody = json::parse(request.body());
+        int newRPM = 0;
+        try
+        {
+            newRPM = requestBody.at("rpm");
+            if (newRPM < 400 || newRPM > 2000)
+            {
+                throw runtime_error("Invalid value. It should be >= 400 and <=2000.");
+            }
+        }
+        catch (runtime_error e)
+        {
+            cout << "setRPM - " << e.what() << endl;
+            response.send(Http::Code::Bad_Request, e.what());
+            return;
+        }
+        catch (...)
+        {
+            cout << "setRPM - Invalid body format." << endl;
+            response.send(Http::Code::Bad_Request, "Invalid body format.");
+            return;
+        }
+        this->rpm = newRPM;
+        response.send(Http::Code::Ok);
+    }
+
+    void setDuration(const Rest::Request &request, Http::ResponseWriter response)
+    {
+        json requestBody = json::parse(request.body());
+        int newduration = 0;
+        try
+        {
+            newduration = requestBody.at("duration");
+            if (newduration < 30 || newduration > 240)
+            {
+                throw runtime_error("Invalid value. It should be >= 30 minutes and <=240 minutes.");
+            }
+        }
+        catch (runtime_error e)
+        {
+            cout << "setDuration - " << e.what() << endl;
+            response.send(Http::Code::Bad_Request, e.what());
+            return;
+        }
+        catch (...)
+        {
+            cout << "setDuration - Invalid body format." << endl;
+            response.send(Http::Code::Bad_Request, "Invalid body format.");
+            return;
+        }
+        this->duration = newduration;
+        response.send(Http::Code::Ok);
     }
 };
 
@@ -153,9 +301,13 @@ public:
         using namespace Rest;
         Routes::Get(router, "/status", Routes::bind(&SmartDry::statusRequest, smdr));
         Routes::Get(router, "/initialize", Routes::bind(&SmartDry::initializeRequest, smdr));
-        Routes::Post(router, "/addClothes", Routes::bind(&SmartDry::addClothes, smdr));
-        Routes::Post(router, "/removeClothes", Routes::bind(&SmartDry::removeClothes, smdr));
+        Routes::Post(router, "/clothes", Routes::bind(&SmartDry::addClothes, smdr));
+        Routes::Delete(router, "/clothes", Routes::bind(&SmartDry::removeClothes, smdr));
         Routes::Get(router, "/programs", Routes::bind(&SmartDry::getPrograms, smdr));
+        Routes::Post(router, "/program", Routes::bind(&SmartDry::setProgram, smdr));
+        Routes::Post(router, "/heat", Routes::bind(&SmartDry::setHeat, smdr));
+        Routes::Post(router, "/rpm", Routes::bind(&SmartDry::setRPM, smdr));
+        Routes::Post(router, "/duration", Routes::bind(&SmartDry::setDuration, smdr));
     }
 
     void start()

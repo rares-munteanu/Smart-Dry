@@ -112,11 +112,15 @@ private:
 public:
     Program(json program)
     {
-        cout << program;
         name = program.at("name");
         duration = program.at("duration");
         heat = program.at("heat");
         rpm = program.at("rpm");
+    }
+
+    const string &getName() const
+    {
+        return name;
     }
 
     const int &getDuration() const
