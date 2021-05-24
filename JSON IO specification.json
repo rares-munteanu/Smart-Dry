@@ -1,0 +1,137 @@
+{
+    "device-name": "Smart Dryer",
+    "device-type": "Dryer",
+    "buffers-count": 10,
+    "input-buffers": {
+        "1": {
+            "token-delimitators": "",
+            "protocol": "HTTP",
+            "method": "GET",
+            "prefix": "curl http://127.0.0.1:8080/",
+            "buffer-tokens": [
+                {
+                    "name": "Command",
+                    "description": "Command for dryer",
+                    "token-type": "string",
+                    "byte-size": 32,
+                    "regex-rule": "[a-zA-Z]*",
+                    "optional": false
+                },
+                {
+                    "name": "Option",
+                    "description": "Option for certain commands",
+                    "token-type": "string",
+                    "byte-size": 32,
+                    "regex-rule": "[a-zA-Z]*",
+                    "optional": true
+                }
+            ]
+        },
+        "2": {
+            "token-delimitators": "",
+            "protocol": "HTTP",
+            "method": "POST",
+            "prefix": "curl --header 'Content-Type: application/json' --request POST 'http://127.0.0.1:8080/",
+            "buffer-tokens": [
+                {
+                    "name": "Command",
+                    "description": "Command for dryer",
+                    "token-type": "string",
+                    "byte-size": 32,
+                    "regex-rule": "[a-z][A-Z]*",
+                    "optional": false
+                },
+                {
+                    "name": "Request body",
+                    "description": "Body of request",
+                    "token-type": "string",
+                    "byte-size": 256,
+                    "regex-rule": " --data \"{('[a-z]+':(d+|'.*'))(,('[a-z]+':(d+|'.*')))*}\"",
+                    "optional": false
+                }
+            ]
+        },
+        "3": {
+            "token-delimitators": " ",
+            "protocol": "HTTP",
+            "method": "DELETE",
+            "prefix": "curl --header 'Content-Type: application/json' --request DELETE 'http://127.0.0.1:8080/clothes --data",
+            "buffer-tokens": [
+                {
+                    "name": "Request body",
+                    "description": "JSON-Array containing cloth ids",
+                    "token-type": "string",
+                    "byte-size": 256,
+                    "regex-rule": "\"[(d+)(, ?(d+))*]\"",
+                    "optional": false
+                }
+            ]
+        }
+    },
+    "output-buffers": {
+        "1": {
+            "token-delimitators": "",
+            "protocol": "HTTP",
+            "method": "GET",
+            "prefix": "curl http://127.0.0.1:8080/",
+            "buffer-tokens": [
+                {
+                    "name": "Command",
+                    "description": "Command for dryer",
+                    "token-type": "string",
+                    "byte-size": 32,
+                    "regex-rule": "[a-zA-Z]*",
+                    "optional": false
+                },
+                {
+                    "name": "Option",
+                    "description": "Option for certain commands",
+                    "token-type": "string",
+                    "byte-size": 32,
+                    "regex-rule": "[a-zA-Z]*",
+                    "optional": true
+                }
+            ]
+        },
+        "2": {
+            "token-delimitators": "",
+            "protocol": "HTTP",
+            "method": "POST",
+            "prefix": "curl --header 'Content-Type: application/json' --request POST 'http://127.0.0.1:8080/",
+            "buffer-tokens": [
+                {
+                    "name": "Command",
+                    "description": "Command for dryer",
+                    "token-type": "string",
+                    "byte-size": 32,
+                    "regex-rule": "[a-z][A-Z]*",
+                    "optional": false
+                },
+                {
+                    "name": "Request body",
+                    "description": "Body of request",
+                    "token-type": "string",
+                    "byte-size": 256,
+                    "regex-rule": " --data \"{('[a-z]+':(d+|'.*'))(,('[a-z]+':(d+|'.*')))*}\"",
+                    "optional": false
+                }
+            ]
+        },
+        "3": {
+            "token-delimitators": " ",
+            "protocol": "HTTP",
+            "method": "DELETE",
+            "prefix": "curl --header 'Content-Type: application/json' --request DELETE 'http://127.0.0.1:8080/clothes --data",
+            "buffer-tokens": [
+                {
+                    "name": "Request body",
+                    "description": "JSON-Array containing cloth ids",
+                    "token-type": "string",
+                    "byte-size": 256,
+                    "regex-rule": "\"[(d+)(, ?(d+))*]\"",
+                    "optional": false
+                }
+            ]
+        }
+    }
+}
