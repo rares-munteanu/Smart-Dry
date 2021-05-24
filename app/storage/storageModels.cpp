@@ -118,6 +118,18 @@ public:
         rpm = program.at("rpm");
     }
 
+    Program()
+    {
+    }
+
+    Program(const Program &p2)
+    {
+        name.assign(p2.name);
+        duration = p2.duration;
+        heat = p2.heat;
+        rpm = p2.rpm;
+    }
+
     const string &getName() const
     {
         return name;
@@ -128,13 +140,29 @@ public:
         return duration;
     }
 
+    void setDuration(int d)
+    {
+        duration = d;
+    }
+
     const int &getHeat() const
     {
         return heat;
     }
+
+    void setHeat(int h)
+    {
+        heat = h;
+    }
+
     const int &getRPM() const
     {
         return rpm;
+    }
+
+    void setRPM(int _rpm)
+    {
+        rpm = _rpm;
     }
 
     json serialize()

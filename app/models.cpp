@@ -273,10 +273,10 @@ class Cloth
 {
 
 private:
-    string hash;
     string type;
     string color;
     string material;
+    int dryFactor;
     int wet;    // expressed as a percentage %
     int weight; // expressed in grams
     int id;
@@ -291,7 +291,7 @@ public:
     static int idSequence;
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Cloth, type, color, material, wet)
 
-    Cloth(const string &type, const string &color, const string &material, const int &wet, const int &weight) : type(type), color(color), material(material), wet(wet), weight(weight) {}
+    Cloth(const string &type, const string &color, const string &material, const int &wet, const int &weight, const int &dryFactor) : type(type), color(color), material(material), wet(wet), weight(weight), dryFactor(dryFactor) {}
     Cloth() = default;
 
     int getId()
@@ -349,10 +349,18 @@ public:
         return weight;
     }
 
-    int getRealWeight()
+    double getRealWeight()
     {
-        int realWeight = ((wet / 2) * weight) / 100 + weight;
+        // int realWeight = ((wet / 2) * weight) / 100 + weight;
+        int realWeight = weight + (wet / 100.0) * weight;
         return realWeight;
+    }
+
+    double getDryDuration(int heat, int rpm)
+    {
+        // DURATION = WET_WEIGHT/1000 * 60 * 1/DRY_FACTOR * 60/HEAT * 1200 / RPM
+
+        return (this->getRealWeight() / 1000.0) * 60.0 * (1.0 / dryFactor) * (60.0 / heat) * (1200.0 / rpm);
     }
 
     string getWetFormatted() const
@@ -362,12 +370,15 @@ public:
 
     json serialize()
     {
-        return json({{"id", id}, {"type", type}, {"color", color}, {"material", material}, {"wet", getWetFormatted()}, {"weight", getWeight()}});
+        return json({{"id", id}, {"type", type}, {"color", color}, {"material", material}, {"wet", getWetFormatted()}, {"weight", getWeight()}, {"dry factor", dryFactor}});
     }
 
     static vector<Cloth> deserializeVector(string data) noexcept(false)
     {
+
         ClothTypes clothTypes = Loader::getInstance().getClothTypes();
+        Materials materials = Loader::getInstance().getClothingMaterials();
+
         vector<Cloth> clothes;
         json j = json::parse(data);
         for (auto &el : j.items())
@@ -381,7 +392,16 @@ public:
                 throw runtime_error("deserializeVector of clothes - invalid wet value");
             }
             string key = cloth.type + cloth.material;
+
             transform(key.begin(), key.end(), key.begin(), ::tolower);
+
+            if (materials.find(cloth.material) == materials.end())
+            {
+                throw runtime_error(string("There is no material defined with this name :") + string(cloth.material));
+            }
+
+            cloth.dryFactor = materials.at(cloth.material).getDryFactor();
+
             cloth.weight = clothTypes.at(key).getWeight();
             clothes.push_back(cloth);
         }

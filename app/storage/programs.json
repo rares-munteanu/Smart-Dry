@@ -1,7 +1,7 @@
 [
     {
         "name": "Test",
-        "duration": 120,
+        "duration": 30,
         "heat": 50,
         "rpm": 800
     },

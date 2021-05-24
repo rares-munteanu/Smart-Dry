@@ -28,14 +28,18 @@ private:
 
         for (auto &it : materials)
         {
-            materialsMap.insert(std::make_pair(it.at("name"), it));
+
+            string materialName = it.at("name");
+            transform(materialName.begin(), materialName.end(), materialName.begin(), ::tolower);
+
+            materialsMap.insert(std::make_pair(materialName, Material(it)));
         }
 
         json colors = getJsonFileContent("./storage/colorCombinations.json");
 
         for (auto &it : colors)
         {
-            colorsMap.insert(std::make_pair(it.at("name"), it));
+            colorsMap.insert(std::make_pair(it.at("name"), Color(it)));
         }
 
         json clothes = getJsonFileContent("./storage/clothingWeights.json");
@@ -44,7 +48,7 @@ private:
         {
             string key = it.at("type").get<string>() + it.at("material").get<string>();
             transform(key.begin(), key.end(), key.begin(), ::tolower);
-            clothesMap.insert(std::make_pair(key, it));
+            clothesMap.insert(std::make_pair(key, ClothType(it)));
         }
 
         json programs = getJsonFileContent("./storage/programs.json");
