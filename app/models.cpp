@@ -277,7 +277,7 @@ private:
     string color;
     string material;
     int dryFactor;
-    int wet;    // expressed as a percentage %
+    double wet; // expressed as a percentage %
     int weight; // expressed in grams
     int id;
 
@@ -291,7 +291,7 @@ public:
     static int idSequence;
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Cloth, type, color, material, wet)
 
-    Cloth(const string &type, const string &color, const string &material, const int &wet, const int &weight, const int &dryFactor) : type(type), color(color), material(material), wet(wet), weight(weight), dryFactor(dryFactor) {}
+    Cloth(const string &type, const string &color, const string &material, const double &wet, const int &weight, const int &dryFactor) : type(type), color(color), material(material), wet(wet), weight(weight), dryFactor(dryFactor) {}
     Cloth() = default;
 
     int getId()
@@ -314,7 +314,7 @@ public:
         this->material = material;
     }
 
-    void setWet(const int &wet)
+    void setWet(const double &wet)
     {
         this->wet = wet;
     }
@@ -339,7 +339,7 @@ public:
         return material;
     }
 
-    const int &getWet() const
+    const double &getWet() const
     {
         return wet;
     }
@@ -352,7 +352,7 @@ public:
     double getRealWeight()
     {
         // int realWeight = ((wet / 2) * weight) / 100 + weight;
-        int realWeight = weight + (wet / 100.0) * weight;
+        double realWeight = weight + (wet / 100.0) * weight;
         return realWeight;
     }
 
@@ -391,16 +391,19 @@ public:
             {
                 throw runtime_error("deserializeVector of clothes - invalid wet value");
             }
-            string key = cloth.type + cloth.material;
 
+            string key = cloth.type + cloth.material;
             transform(key.begin(), key.end(), key.begin(), ::tolower);
 
-            if (materials.find(cloth.material) == materials.end())
+            string materialLower = cloth.material;
+            transform(materialLower.begin(), materialLower.end(), materialLower.begin(), ::tolower);
+
+            if (materials.find(materialLower) == materials.end())
             {
-                throw runtime_error(string("There is no material defined with this name :") + string(cloth.material));
+                throw runtime_error(string("There is no material defined with this name :") + materialLower);
             }
 
-            cloth.dryFactor = materials.at(cloth.material).getDryFactor();
+            cloth.dryFactor = materials.at(materialLower).getDryFactor();
 
             cloth.weight = clothTypes.at(key).getWeight();
             clothes.push_back(cloth);

@@ -1,9 +1,9 @@
 [
     {
-        "name": "Test",
+        "name": "Default",
         "duration": 30,
-        "heat": 50,
-        "rpm": 800
+        "heat": 30,
+        "rpm": 400
     },
     {
         "name": "High Heat High Speed",

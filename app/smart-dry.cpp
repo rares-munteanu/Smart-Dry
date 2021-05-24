@@ -82,7 +82,7 @@ public:
 class SmartDry
 {
 private:
-    string status;
+    // string status;
     Status status1;
     vector<Cloth> clothes;
     double perfume; // expressed as a percentage (x%)
@@ -122,11 +122,16 @@ private:
     }
 
 public:
-    static const char *statuses[];
+    static string statuses[3];
     string getStatusString(int enum_val)
     {
         string tmp(statuses[enum_val]);
         return tmp;
+    }
+
+    Status &getStatus()
+    {
+        return status1;
     }
 
     vector<Cloth> &getClothesVector()
@@ -144,11 +149,6 @@ public:
         return durationLeft;
     }
 
-    void setStatus(const string &newStatus)
-    {
-        status = newStatus;
-    }
-
     void setDurationLeft(const int &_durationLeft)
     {
         durationLeft = _durationLeft;
@@ -159,9 +159,19 @@ public:
         perfume = _perfume;
     }
 
+    int &getCurrentWeight()
+    {
+        return currentWeight;
+    }
+    void setCurrentWeight(const int &_currentWeight)
+    {
+        currentWeight = _currentWeight;
+    }
+
     SmartDry()
     {
-        status.assign("off");
+        // status.assign("off");
+        status1 = Status::Stopped;
         perfume = 0;       // starts with no perfume
         maxWeight = 3000;  // 3 kg
         currentWeight = 0; // starts with 0
@@ -173,7 +183,17 @@ public:
     {
         if (status1 == Status::Running)
         {
-            response->send(Http::Code::Bad_Request, "Machine is running. Pause the program or wait until it is over.");
+            response->send(Http::Code::Bad_Request, "Machine is running. Pause/stop the program or wait until it is over.");
+            return true;
+        }
+        return false;
+    }
+
+    bool isPaused(Http::ResponseWriter *response)
+    {
+        if (status1 == Status::Paused)
+        {
+            response->send(Http::Code::Bad_Request, "Machine is paused. Stop the program to adjust rpm/heat/duration/program.");
             return true;
         }
         return false;
@@ -185,6 +205,11 @@ public:
 
         for (;;)
         {
+            if (smdr->getStatus() != Status::Running)
+            {
+                pthread_exit(NULL);
+            }
+
             sleep(1);
 
             cout << "Drying clothes " << endl;
@@ -193,9 +218,14 @@ public:
 
             smdr->setPerfume((smdr->getDurationLeft() * smdr->getPerfume()) / smdr->getProgram().getDuration());
 
+            for (auto &cloth : smdr->getClothesVector())
+            {
+                cloth.setWet(double((smdr->getDurationLeft() * cloth.getWet()) / smdr->getProgram().getDuration()));
+            }
+
             if (smdr->getDurationLeft() == 0)
             {
-                smdr->status.assign("off");
+                smdr->status1 = Status::Stopped;
                 smdr->currentWeight = 0;
                 for (auto &cloth : smdr->getClothesVector())
                 {
@@ -211,54 +241,113 @@ public:
         }
     }
 
-    void startProgram(const Rest::Request &, Http::ResponseWriter response)
+    void startSmartProgram(const Rest::Request &, Http::ResponseWriter response)
     {
+        if (isRunning(&response))
+            return;
 
-        // Create new thread to handle real time left duration
+        if (currentWeight == 0)
+        {
+            response.send(Http::Code::Bad_Request, "There are no clothes. Please load them before.");
+            return;
+        }
+        Materials material = Loader::getInstance().getClothingMaterials();
+        int heatToBeUsed = 0;
+        for (auto &cloth : clothes)
+        {
+            int clothMaxHeat = material.at(cloth.getMaterial()).getMaxTemp();
+            if (clothMaxHeat > heatToBeUsed)
+            {
+                heatToBeUsed = clothMaxHeat;
+            }
+        }
+        this->currentProgram.setHeat(heatToBeUsed);
+        this->currentProgram.setRPM(2000);
+
+        double maxDuration = 0;
+        for (auto &cloth : clothes)
+        {
+            double _currentClothDuration = cloth.getDryDuration(currentProgram.getHeat(), currentProgram.getRPM());
+            // cout << "HEAT " << currentProgram.getHeat() << " RPM " << currentProgram.getRPM() << " maxDuration " << maxDuration << " _currentClothDuration " << _currentClothDuration << endl;
+            maxDuration = max(maxDuration, _currentClothDuration);
+        }
+        this->currentProgram.setDuration(maxDuration);
+        status1 = Status::Running;
         try
         {
             pthread_t thread;
-            int rc;
-            rc = pthread_create(&thread, NULL, dryClothes, (void *)this);
+            int rc = pthread_create(&thread, NULL, dryClothes, (void *)this);
 
             if (rc)
             {
                 cout << "Error:unable to create thread," << rc << endl;
+                status1 = Status::Stopped;
             }
         }
         catch (const std::exception &)
         {
+            status1 = Status::Stopped;
             response.send(Http::Code::Bad_Request, string("Error:unable to create thread"));
             return;
         }
 
-        // if (status == "on")
-        // {
-        //     response.send(Http::Code::Bad_Request, "Machine is running. Close the program or wait until it is over.");
-        //     return;
-        // }
+        response.send(Http::Code::Ok, "Program has started");
+        durationLeft = currentProgram.getDuration();
+    }
 
-        // double maxDuration = 0;
-        // for (auto &cloth : clothes)
-        // {
-        //     double _currentClothDuration = cloth.getDryDuration(currentProgram.getHeat(), currentProgram.getRPM());
-        //     cout << "HEAT " << currentProgram.getHeat() << " RPM " << currentProgram.getRPM() << " maxDuration " << maxDuration << " _currentClothDuration " << _currentClothDuration << endl;
+    void startProgram(const Rest::Request &, Http::ResponseWriter response)
+    {
 
-        //     maxDuration = max(maxDuration, _currentClothDuration);
-        // }
+        if (isRunning(&response))
+            return;
+
+        if (currentWeight == 0)
+        {
+            response.send(Http::Code::Bad_Request, "There are no clothes. Please load them before.");
+            return;
+        }
+
+        double maxDuration = 0;
+        for (auto &cloth : clothes)
+        {
+            double _currentClothDuration = cloth.getDryDuration(currentProgram.getHeat(), currentProgram.getRPM());
+            // cout << "HEAT " << currentProgram.getHeat() << " RPM " << currentProgram.getRPM() << " maxDuration " << maxDuration << " _currentClothDuration " << _currentClothDuration << endl;
+            maxDuration = max(maxDuration, _currentClothDuration);
+        }
         // cout << maxDuration << endl;
 
-        // if (maxDuration > currentProgram.getDuration())
-        // {
-        //     ostringstream strs;
-        //     strs << maxDuration;
-        //     string str = strs.str();
-        //     response.send(Http::Code::Bad_Request, string("Set duration is less than it should be. Recommended duration : bigger than ") + str);
-        //     return;
-        // }
+        if (maxDuration > currentProgram.getDuration())
+        {
+            ostringstream strs;
+            strs << maxDuration;
+            string str = strs.str();
+            response.send(Http::Code::Bad_Request, string("Set duration is less than it should be. Recommended duration : bigger than ") + str);
+            return;
+        }
 
-        // response.send(Http::Code::Ok, "Program has started");
-        // durationLeft = currentProgram.getDuration();
+        // Creating new thread to handle drying process
+
+        status1 = Status::Running;
+        try
+        {
+            pthread_t thread;
+            int rc = pthread_create(&thread, NULL, dryClothes, (void *)this);
+
+            if (rc)
+            {
+                cout << "Error:unable to create thread," << rc << endl;
+                status1 = Status::Stopped;
+            }
+        }
+        catch (const std::exception &)
+        {
+            status1 = Status::Stopped;
+            response.send(Http::Code::Bad_Request, string("Error:unable to create thread"));
+            return;
+        }
+
+        response.send(Http::Code::Ok, "Program has started");
+        durationLeft = currentProgram.getDuration();
         // status.assign("on");
     }
 
@@ -277,7 +366,8 @@ public:
             };
 
             json array_not_object = json({{"clothes", getClothes()},
-                                          {"status", status},
+                                          //   {"status", status},
+                                          {"status", getStatusString(status1)},
                                           {"perfume", getPerfumeFormatted()},
                                           {"currentWeight", currentWeight},
                                           {"maxWeight", maxWeight},
@@ -295,7 +385,7 @@ public:
 
     void initializeRequest(const Rest::Request &, Http::ResponseWriter response)
     {
-        status.assign("Initialized");
+        // status.assign("Initialized");
         // More initialization stuff
         response.send(Http::Code::Ok);
     };
@@ -318,8 +408,9 @@ public:
 
     void setProgram(const Rest::Request &request, Http::ResponseWriter response)
     {
-        if (isRunning(&response))
+        if (isRunning(&response) || isPaused(&response))
             return;
+
         vector<Program> programs = Loader::getInstance().getPrograms();
 
         json requestBody = json::parse(request.body());
@@ -377,9 +468,16 @@ public:
             response.send(Http::Code::Bad_Request, "Unexpected error in addClothes.");
             return;
         }
+        Materials material = Loader::getInstance().getClothingMaterials();
         int clothesToAddWeight = this->currentWeight;
         for (Cloth &cloth : clothesToAdd)
         {
+            if (material.at(cloth.getMaterial()).getMaxTemp() < this->currentProgram.getHeat())
+            {
+                response.send(Http::Code::Bad_Request, "You are trying to add clothes that doesn't allow this heat. Lower the heat.");
+                return;
+            }
+
             clothesToAddWeight += cloth.getRealWeight();
             if (clothesToAddWeight > this->maxWeight)
             {
@@ -404,14 +502,18 @@ public:
         {
             if (clothId.is_number())
             {
-                auto new_end = remove_if(clothes.begin(), clothes.begin(), [&](Cloth &cloth) -> bool {
-                    return clothId == cloth.getId();
-                });
-                if (new_end != clothes.end())
+
+                vector<Cloth>::iterator it;
+
+                for (it = clothes.begin(); it != clothes.end(); ++it)
                 {
-                    this->currentWeight -= new_end->getRealWeight();
+                    if ((*it).getId() == clothId)
+                    {
+                        this->currentWeight -= (*it).getRealWeight();
+                        clothes.erase(it);
+                        break;
+                    }
                 }
-                clothes.erase(new_end, clothes.end());
             }
         }
 
@@ -420,8 +522,9 @@ public:
 
     void setHeat(const Rest::Request &request, Http::ResponseWriter response)
     {
-        if (isRunning(&response))
+        if (isRunning(&response) || isPaused(&response))
             return;
+
         json requestBody = json::parse(request.body());
         int newHeat = 0;
         try
@@ -458,7 +561,7 @@ public:
 
     void setPerfumeR(const Rest::Request &request, Http::ResponseWriter response)
     {
-        if (isRunning(&response))
+        if (isRunning(&response) || isPaused(&response))
             return;
         json requestBody = json::parse(request.body());
         int newPerfume = 0;
@@ -488,8 +591,9 @@ public:
 
     void setRPM(const Rest::Request &request, Http::ResponseWriter response)
     {
-        if (isRunning(&response))
+        if (isRunning(&response) || isPaused(&response))
             return;
+
         json requestBody = json::parse(request.body());
         int newRPM = 0;
         try
@@ -518,7 +622,7 @@ public:
 
     void setDuration(const Rest::Request &request, Http::ResponseWriter response)
     {
-        if (isRunning(&response))
+        if (isRunning(&response) || isPaused(&response))
             return;
         json requestBody = json::parse(request.body());
         int newduration = 0;
@@ -548,27 +652,30 @@ public:
 
     void changeStatus(const Rest::Request &request, Http::ResponseWriter response)
     {
-        // auto newStatus = request.param(":newStatus").as<string>();
-        // if (strcmp(newStatus, "pause") == 0)
-        // {
-        //     if (status1 == Status::Running)
-        //     {
-        //         status1 = Status::Paused;
-        //         response.send(Http::Code::Ok, "Machine is paused.");
-        //         return;
-        //     }
-        // }
-        // else if (strcmp(newStatus, "stop") == 0)
-        // {
-        //     status1 = Status::Stopped;
-        //     response.send(Http::Code::Ok, "Machine is stopepd.");
-        //     return;
-        // }
-        // else
-        // {
-        //     response.send(Http::Code::Bad_Request, "Available query parameters are: stop and pause.");
-        //     return;
-        // }
+        auto newStatus = request.param(":newStatus").as<string>();
+        transform(newStatus.begin(), newStatus.end(), newStatus.begin(), ::tolower);
+        string pause = "pause";
+        string stop = "stop";
+        if (newStatus.compare(pause) == 0)
+        {
+            if (status1 == Status::Running)
+            {
+                status1 = Status::Paused;
+                response.send(Http::Code::Ok, "Machine is paused.");
+                return;
+            }
+        }
+        else if (newStatus.compare(stop) == 0)
+        {
+            status1 = Status::Stopped;
+            response.send(Http::Code::Ok, "Machine is stopepd.");
+            return;
+        }
+        else
+        {
+            response.send(Http::Code::Bad_Request, "Available query parameters are: stop and pause.");
+            return;
+        }
 
         response.send(Http::Code::Bad_Request, "Invalid operation.");
     }
@@ -583,7 +690,7 @@ public:
     }
 };
 
-// const char *SmartDry::statuses = {"Off", "Pause", "On"};
+string SmartDry::statuses[3] = {"Off", "Pause", "On"};
 
 class SmartDryHandler
 {
@@ -601,19 +708,25 @@ public:
     {
         using namespace Rest;
         Routes::Get(router, "/initialize", Routes::bind(&SmartDry::initializeRequest, smdr));
+
         Routes::Get(router, "/start", Routes::bind(&SmartDry::startProgram, smdr));
+        Routes::Get(router, "/start/smart", Routes::bind(&SmartDry::startSmartProgram, smdr));
 
         Routes::Get(router, "/status", Routes::bind(&SmartDry::statusRequest, smdr));
+
         Routes::Post(router, "/clothes", Routes::bind(&SmartDry::addClothes, smdr));
         Routes::Delete(router, "/clothes", Routes::bind(&SmartDry::removeClothes, smdr));
+
         Routes::Get(router, "/programs", Routes::bind(&SmartDry::getPrograms, smdr));
         Routes::Post(router, "/program", Routes::bind(&SmartDry::setProgram, smdr));
         Routes::Get(router, "/program/:newStatus", Routes::bind(&SmartDry::changeStatus, smdr));
+
         Routes::Post(router, "/heat", Routes::bind(&SmartDry::setHeat, smdr));
         Routes::Post(router, "/rpm", Routes::bind(&SmartDry::setRPM, smdr));
         Routes::Post(router, "/duration", Routes::bind(&SmartDry::setDuration, smdr));
-        Routes::Get(router, "/statistics", Routes::bind(&SmartDry::getStatistics, smdr));
         Routes::Post(router, "/perfume", Routes::bind(&SmartDry::setPerfumeR, smdr));
+
+        Routes::Get(router, "/statistics", Routes::bind(&SmartDry::getStatistics, smdr));
     }
 
     void start()

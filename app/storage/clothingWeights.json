@@ -20,6 +20,7 @@
         "weight": 300
     },
     {
+        "type": "Pants",
         "material": "Leather",
         "weight": 150
     },
