@@ -72,7 +72,7 @@ public:
         return json({{"Total rotations", rotations},
                      {"Total time drier has dried", totalDuration},
                      {"Average temperature", (float)(totalTemp / numberOfDries)},
-                     {"Average RPM", (float)(totalTemp / numberOfDries)},
+                     {"Average RPM", (float)(totalRPM / numberOfDries)},
                      {"Average duration", (float)(totalDuration / numberOfDries)},
                      {"Clothes dried", clothesDryed},
                      {"Number of dries", numberOfDries}});
