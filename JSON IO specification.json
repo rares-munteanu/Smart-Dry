@@ -1,7 +1,7 @@
 {
     "device-name": "Smart Dryer",
     "device-type": "Dryer",
-    "buffers-count": 10,
+    "buffers-count": 3,
     "input-buffers": {
         "1": {
             "token-delimitators": "",
