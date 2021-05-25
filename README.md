@@ -18,16 +18,19 @@ sudo apt install libpistache-dev
 ```
 
 ### Nlohmann
+
 ```
 sudo apt-get install nlohmann-json3-dev
 ```
 
 ### Compiling
+
 ```
-g++ -o prog smart-dry.cpp -std=c++2a -lpistache
+g++ -o prog smart-dry.cpp -std=c++2a -lpistache -pthread
 ```
 
 ### Running
+
 ```
 ./prog
 ```

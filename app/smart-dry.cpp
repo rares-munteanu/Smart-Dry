@@ -469,6 +469,8 @@ public:
             return;
         }
         Materials material = Loader::getInstance().getClothingMaterials();
+        // Colors colorsMap = Loader::getInstance().getColors();
+
         int clothesToAddWeight = this->currentWeight;
         for (Cloth &cloth : clothesToAdd)
         {

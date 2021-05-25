@@ -66,6 +66,21 @@
                     "optional": false
                 }
             ]
+        },
+        "4": {
+            "token-delimitators": "",
+            "protocol": "MQTT",
+            "prefix": "tcp://localhost:1883/smart_dry/",
+            "buffer-tokens": [
+                {
+                "name": "Topic",
+                "description": "Topic to subscribe to",
+                "token-type": "string",
+                "byte-size": 32,
+                "regex-rule": "[a-zA-Z_]*",
+                "optional": false
+                }
+            ]
         }
     },
     "output-buffers": {
@@ -130,6 +145,21 @@
                     "byte-size": 256,
                     "regex-rule": "\"[(d+)(, ?(d+))*]\"",
                     "optional": false
+                }
+            ]
+        },
+        "4": {
+            "token-delimitators": "",
+            "protocol": "MQTT",
+            "prefix": "tcp://localhost:1883/smart_dry/",
+            "buffer-tokens": [
+                {
+                "name": "Topic",
+                "description": "Topic to subscribe to",
+                "token-type": "string",
+                "byte-size": 32,
+                "regex-rule": "[a-zA-Z_]*",
+                "optional": false
                 }
             ]
         }
